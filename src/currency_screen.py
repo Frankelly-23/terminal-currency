@@ -23,7 +23,7 @@ class Currencyscr:
             if self.content_y_start + i >= self.height - 1:
                 break
             x = max(0, (self.width - len(currency)) // 2)
-            self.currencyscr.addstr(self.content_y_start + i, x, currency) 
+            self.currencyscr.addstr(self.content_y_start + i, x, f"{currency} €") 
         
         self.currencyscr.noutrefresh()
 

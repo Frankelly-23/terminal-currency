@@ -82,7 +82,7 @@ def get_Currencies() -> dict[str, list[str]] | str:
 
         result: dict[str, list[str]]  = {}
         for continent, currency_map in continents.items():
-            result[continent] = [f"{name}: {rates[code]}" for name, code in currency_map.items()]
+            result[continent] = [f"{name}: {rates[code]:.2f}" for name, code in currency_map.items()]
 
         return result
 
