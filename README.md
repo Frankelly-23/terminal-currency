@@ -5,7 +5,7 @@ Ever wanted to see how much your money is worth (or not worth) across the globe 
 This is a sleek, **Terminal User Interface (TUI)** that brings world currency rates directly to your command line. No browser, no ads, just pure data and ASCII boxes.
 
 ##  See it in Action
-![Currency Screen Capture](./screen-capture.png)
+![Currency Screen Capture](./public/screen-capture.png)
 
 ##  Features
 - **Continent-wise Breakdown:** Organized views for Asia, Europe, America, and Oceania & Africa.
