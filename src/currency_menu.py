@@ -2,15 +2,15 @@ import curses
 
 
 class Menu:
-    def __init__(self, content: str, colors: list[int], nlines: int, ncols: int, beginY: int, beginX: int) -> None:
+    def __init__(self, content: str, colors: list[int], beginY: int, beginX: int) -> None:
         self.content: str = content
         self.colors: list[int] = colors
-        self.nlines: int = nlines
-        self.ncols: int = ncols
+        self.nlines: int = 5 
+        self.ncols: int = len(self.content) + 6 
         self.beginY: int = beginY
         self.beginX: int = beginX
         
-        self.menuscr: curses.window = curses.newwin(nlines, ncols, beginY, beginX)
+        self.menuscr: curses.window = curses.newwin(self.nlines, self.ncols, beginY, beginX)
         self.height, self.width = self.menuscr.getmaxyx()
         self.contentX: int = max(0, (self.width - len(self.content)) // 2)
         self.contentY: int = self.height//2 

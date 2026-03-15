@@ -1,4 +1,5 @@
 import curses
+from locale import currency
 
 class Currencyscr:
     def __init__(self, currencies: list[str], title: str, nlines: int, ncols: int, beginY: int, beginX: int, color: int):
@@ -11,6 +12,7 @@ class Currencyscr:
         self.title_x: int = max(0, (self.width - len(self.title)) // 2)
         self.title_y: int = self.height // 5
         self.content_y_start: int = self.title_y + 2
+
 
     def write_currency(self):
         self.currencyscr.erase()
@@ -26,4 +28,27 @@ class Currencyscr:
             self.currencyscr.addstr(self.content_y_start + i, x, f"{currency} €") 
         
         self.currencyscr.noutrefresh()
+
+    def chart_mode(self):
+        self.currencyscr.erase()
+        self.currencyscr.box()
+        
+        self.currencyscr.addstr(self.title_y, self.title_x, self.title, self.color)
+
+        for i, currency in enumerate(self.currencies):
+            currency_msg = currency.split(" ")
+            country = currency.split(":")[0] 
+            currency_value = float(currency_msg[-1])
+
+            if (int(currency_value) + len(country) + 1) > self.width:
+                chart_bar = "|" * (self.width - len(country)) 
+            else:
+                chart_bar = "|" * int(currency_value) 
+
+            self.currencyscr.addstr(self.content_y_start + i, 1, chart_bar + country) 
+        self.currencyscr.noutrefresh()
+
+
+
+
 

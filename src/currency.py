@@ -91,12 +91,12 @@ def get_Currencies() -> dict[str, list[str]] | str:
     except Exception:
         return "error"
 
-def draw_mainscr(stdscr: curses.window, message: str, color: int):
+def draw_mainscr(stdscr: curses.window, title: str, color: int):
     stdscr.erase()
     stdscr.box()
     height, width = stdscr.getmaxyx()
-    XMESSAGE, YMESSAGE = abs((width // 2) - (len(message) // 2)), height // 7 
-    stdscr.addstr(YMESSAGE, XMESSAGE, message, color)
+    XMESSAGE, YMESSAGE = abs((width // 2) - (len(title) // 2)), height // 7 
+    stdscr.addstr(YMESSAGE, XMESSAGE, title, color)
         
     stdscr.noutrefresh()
 
@@ -115,42 +115,51 @@ def main(stdscr: curses.window):
     GREEN: int = curses.color_pair(2)
     # RED = curses.color_pair(3)
     
-    message: str = "World Currencies  🌍"
+    title: str = "World Currencies  🌍"
     asia_scr: Currencyscr = Currencyscr(currencies_per_continent['asia'], "Asia", 20, 30, 10, 10, GREEN) 
     europe_scr: Currencyscr = Currencyscr(currencies_per_continent['europe'], "Europe", 20, 30, 10, 40, GREEN) 
     america_scr: Currencyscr = Currencyscr(currencies_per_continent['america'], "America", 20, 30, 10, 70, GREEN) 
     ocenia_and_africa_scr: Currencyscr = Currencyscr(currencies_per_continent['oceania_africa'], "Oceania & Africa", 20, 30, 10, 100, GREEN) 
 
     menu_content =  "[+] C to Toggle chart view"
-    list_or_chart_menu: Menu = Menu(menu_content, [MAGENTA, GREEN], 5, len(menu_content) + 4, 30, 10) 
+    list_or_chart_menu: Menu = Menu(menu_content, [MAGENTA, GREEN], 30, 10) 
 
     # If dynamic updates are added later.
     stdscr.timeout(-1)
 
 
         
-    def draw_all():
+    def draw_all(isChartMode: bool):
 
         #Main Screen
-        draw_mainscr(stdscr, message, MAGENTA) 
+        draw_mainscr(stdscr, title, MAGENTA) 
+        if isChartMode:
+            asia_scr.chart_mode()
+            europe_scr.chart_mode()
+            america_scr.chart_mode()
+            ocenia_and_africa_scr.chart_mode()
+        else:
+            asia_scr.write_currency()
+            europe_scr.write_currency()
+            america_scr.write_currency()
+            ocenia_and_africa_scr.write_currency()
 
-        asia_scr.write_currency()
-        europe_scr.write_currency()
-        america_scr.write_currency()
-        ocenia_and_africa_scr.write_currency()
         list_or_chart_menu.draw_menu()  
         
         curses.doupdate()
 
-    draw_all()
+    draw_all(False)
     
     while True:
         # Check for user input (q to quit)
+        chartMode = False
         key = stdscr.getch()
         if key == ord('q'):
             break
+        elif key == ord('c'):
+            draw_all(not chartMode)
         elif key == curses.KEY_RESIZE:
-            draw_all()
+            draw_all(chartMode)
 
 
 if __name__ == '__main__':
