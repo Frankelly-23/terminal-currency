@@ -54,7 +54,7 @@ import requests
   # ┃  - SGD - Singapore
   # ┃  - THB - Thailand
 
-def get_Currencies() -> dict[str, list[str]] | str:
+def get_Currencies() -> dict[str, list[list[str]]]  | str:
     try:
         res = requests.get("https://api.frankfurter.app/latest")
         data = res.json()
@@ -82,9 +82,9 @@ def get_Currencies() -> dict[str, list[str]] | str:
                 }
         }
 
-        result: dict[str, list[str]]  = {}
+        result: dict[str, list[list[str]]]  = {}
         for continent, currency_map in continents.items():
-            result[continent] = [f"{name}: {rates[code]:.2f}" for name, code in currency_map.items()]
+            result[continent] = [[f"{name}: {rates[code]:.2f}", f"{code}", rates[code]] for name, code in currency_map.items()]
 
         return result
 
@@ -113,13 +113,31 @@ def main(stdscr: curses.window):
     curses.init_pair(3, curses.COLOR_RED, curses.COLOR_BLACK) 
     MAGENTA: int = curses.color_pair(1)
     GREEN: int = curses.color_pair(2)
-    # RED = curses.color_pair(3)
+    RED = curses.color_pair(3)
     
     title: str = "World Currencies  🌍"
-    asia_scr: Currencyscr = Currencyscr(currencies_per_continent['asia'], "Asia", 20, 30, 10, 10, GREEN) 
-    europe_scr: Currencyscr = Currencyscr(currencies_per_continent['europe'], "Europe", 20, 30, 10, 40, GREEN) 
-    america_scr: Currencyscr = Currencyscr(currencies_per_continent['america'], "America", 20, 30, 10, 70, GREEN) 
-    ocenia_and_africa_scr: Currencyscr = Currencyscr(currencies_per_continent['oceania_africa'], "Oceania & Africa", 20, 30, 10, 100, GREEN) 
+    asia_scr: Currencyscr = Currencyscr(
+            currencies_per_continent['asia'], 
+            "Asia", 
+            20, 30, 10, 10,
+            [GREEN, MAGENTA, RED] 
+            ) 
+    europe_scr: Currencyscr = Currencyscr(
+            currencies_per_continent['europe'], 
+            "Europe", 
+            20, 30, 10, 40, 
+            [GREEN, MAGENTA, RED]
+            ) 
+    america_scr: Currencyscr = Currencyscr(
+            currencies_per_continent['america'], 
+            "America", 
+            20, 30, 10, 70, 
+            [GREEN, MAGENTA, RED])
+    ocenia_and_africa_scr: Currencyscr = Currencyscr(
+            currencies_per_continent['oceania_africa'], 
+            "Oceania & Africa", 
+            20, 30, 10, 100, 
+            [GREEN, MAGENTA, RED]) 
 
     menu_content =  "[+] C to Toggle chart view"
     list_or_chart_menu: Menu = Menu(menu_content, [MAGENTA, GREEN], 30, 10) 
@@ -128,7 +146,6 @@ def main(stdscr: curses.window):
     stdscr.timeout(-1)
 
 
-        
     def draw_all(isChartMode: bool):
 
         #Main Screen
@@ -144,20 +161,20 @@ def main(stdscr: curses.window):
             america_scr.write_currency()
             ocenia_and_africa_scr.write_currency()
 
+
         list_or_chart_menu.draw_menu()  
         
         curses.doupdate()
 
-    draw_all(False)
-    
+    chartMode = False 
     while True:
+        draw_all(chartMode)
         # Check for user input (q to quit)
-        chartMode = False
         key = stdscr.getch()
         if key == ord('q'):
             break
         elif key == ord('c'):
-            draw_all(not chartMode)
+            chartMode = not chartMode
         elif key == curses.KEY_RESIZE:
             draw_all(chartMode)
 
