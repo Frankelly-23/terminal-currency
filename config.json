@@ -1,0 +1,41 @@
+{
+  "continents": {
+    "asia": {
+      "Hong Kong": "HKD",
+      "China": "CNY",
+      "Indonesia": "IDR",
+      "India": "INR",
+      "Japan": "JPY",
+      "South Korea": "KRW",
+      "Malaysia": "MYR",
+      "Philippines": "PHP",
+      "Singapore": "SGD",
+      "Thailand": "THB",
+      "Israel": "ILS"
+    },
+    "europe": {
+      "Switzerland": "CHF",
+      "Czech Republic": "CZK",
+      "Denmark": "DKK",
+      "United Kingdom": "GBP",
+      "Hungary": "HUF",
+      "Iceland": "ISK",
+      "Norway": "NOK",
+      "Poland": "PLN",
+      "Romania": "RON",
+      "Sweden": "SEK",
+      "Turkey": "TRY"
+    },
+    "america": {
+      "Canada": "CAD",
+      "Mexico": "MXN",
+      "United States": "USD",
+      "Brazil": "BRL"
+    },
+    "oceania_africa": {
+      "Australia": "AUD",
+      "New Zealand": "NZD",
+      "South Africa": "ZAR"
+    }
+  }
+}

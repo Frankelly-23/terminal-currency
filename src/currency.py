@@ -3,153 +3,105 @@ import curses
 from curses import wrapper
 from currency_screen import Currencyscr 
 from currency_menu import Menu
+from config import Config
 import requests
 
-# data example 
-# data = {
-#   "amount": 1,
-#   "base": "EUR",
-#   "date": "2026-03-06",
-#   "rates": {
-#     "AUD": 1.6501,
-#     "BRL": 6.1002,
-#     "CAD": 1.5782,
-#     "CHF": 0.9045,
-#     "CNY": 7.9825,
-#     "CZK": 24.419,
-#     "DKK": 7.4708,
-#     "GBP": 0.86693,
-#     "HKD": 9.04,
-#     "HUF": 393.4,
-#     "IDR": 19623,
-#     "ILS": 3.5756,
-#     "INR": 106.17,
-#     "ISK": 144.9,
-#     "JPY": 182.57,
-#     "KRW": 1717.02,
-#     "MXN": 20.562,
-#     "MYR": 4.562,
-#     "NOK": 11.1725,
-#     "NZD": 1.9687,
-#     "PHP": 68.525,
-#     "PLN": 4.2875,
-#     "RON": 5.0951,
-#     "SEK": 10.693,
-#     "SGD": 1.481,
-#     "THB": 36.966,
-#     "TRY": 50.954,
-#     "USD": 1.1561,
-#     "ZAR": 19.3277
-#   }
-# }
+config = Config()
 
-def get_Currencies() -> dict[str, list[tuple[str, str, float]]]  | str:
+def get_Currencies():
     try:
         res = requests.get("https://api.frankfurter.app/latest")
+        res.raise_for_status()
         data = res.json()
         rates = data["rates"] 
 
-        continents = {
-            "asia": {
-                "Hong Kong": "HKD", "China": "CNY", "Indonesia": "IDR", "India": "INR", 
-                "Japan": "JPY", "South Korea": "KRW", "Malaysia": "MYR", 
-                "Philippines": "PHP", "Singapore": "SGD", "Thailand": "THB",
-                "Israel": "ILS"
-            },
-            "europe": {
-                "Switzerland": "CHF", "Czech Republic": "CZK", "Denmark": "DKK", 
-                "United Kingdom": "GBP", "Hungary": "HUF", "Iceland": "ISK", 
-                "Norway": "NOK", "Poland": "PLN", "Romania": "RON", 
-                "Sweden": "SEK", "Turkey": "TRY"
-            },
-            "america": {
-                "Canada": "CAD", "Mexico": "MXN", "United States": "USD", "Brazil": "BRL"
-            },
-            "oceania_africa": {
-                "Australia": "AUD", "New Zealand": "NZD", "South Africa": "ZAR"
+        continents = config.get_continents()
 
-                }
-        }
-
-        result: dict[str, list[tuple[str, str, float]]]  = {}
+        result  = {}
         for continent, currency_map in continents.items():
-            result[continent] = [[f"{name}: {rates[code]:.2f}", f"{code}", rates[code]] for name, code in currency_map.items()]
+            result[continent] = [[f"{name}: {rates[code]:.2f}", f"{code}", rates[code]] for name, code in currency_map.items() if code in rates]
 
         return result
 
     except Exception:
-        return "error"
+        return None
 
-def draw_mainscr(stdscr: curses.window, title: str, color: int):
+
+def draw_error(color, stdscr):
     stdscr.erase()
     stdscr.box()
     height, width = stdscr.getmaxyx()
-    XMESSAGE, YMESSAGE = abs((width // 2) - (len(title) // 2)), height // 7 
-    stdscr.addstr(YMESSAGE, XMESSAGE, title, color)
-        
-    stdscr.noutrefresh()
+    error_message = "We've had an issue getting the data :("
+    exit_message = "Press any key to leave"
+    
+    mid_y, mid_x = height // 2, width // 2
+    
+    stdscr.addstr(mid_y, mid_x - len(error_message)//2, error_message, color[1])
+    stdscr.addstr(mid_y + 2, mid_x - len(exit_message)//2, exit_message, color[0])
+    
+    stdscr.refresh()
+    stdscr.getch()
 
-def draw_error(color: list[int], stdscr: curses.window):
-    height, width = stdscr.getmaxyx()
-    error_menu: Menu = Menu("We've had and issue getting the data :(", color, width//2, height//2)
-    q_to_leave: Menu = Menu("Press q to leave", color, 30, 10) 
-    q_to_leave.draw_menu()
-    error_menu.draw_menu()
-    key = stdscr.getch()
-    if key == ord('q'):
-        return
-
-def main(stdscr: curses.window):
+def main(stdscr):
     # colors
     curses.init_pair(1, curses.COLOR_MAGENTA, curses.COLOR_BLACK) 
     curses.init_pair(2, curses.COLOR_GREEN, curses.COLOR_BLACK) 
     curses.init_pair(3, curses.COLOR_RED, curses.COLOR_BLACK) 
-    MAGENTA: int = curses.color_pair(1)
-    GREEN: int = curses.color_pair(2)
+    MAGENTA = curses.color_pair(1)
+    GREEN  = curses.color_pair(2)
     RED = curses.color_pair(3)
     
     currencies_per_continent = get_Currencies()
 
-    if currencies_per_continent == "error":
+    if currencies_per_continent is None:
        draw_error([MAGENTA, RED], stdscr) 
+       return
 
     curses.curs_set(0)  
     
-    title: str = "World Currencies  🌍"
-    asia_scr: Currencyscr = Currencyscr(
+    title = "World Currencies  🌍"
+    asia_scr = Currencyscr(
             currencies_per_continent['asia'], 
             "Asia", 
             20, 30, 10, 10,
             [RED, MAGENTA, GREEN]
             ) 
-    europe_scr: Currencyscr = Currencyscr(
+    europe_scr = Currencyscr(
             currencies_per_continent['europe'], 
             "Europe", 
             20, 30, 10, 40, 
             [RED, MAGENTA, GREEN]
             ) 
-    america_scr: Currencyscr = Currencyscr(
+    america_scr = Currencyscr(
         currencies_per_continent['america'] , 
             "America", 
             20, 30, 10, 70, 
             [RED, MAGENTA, GREEN])
-    ocenia_and_africa_scr: Currencyscr = Currencyscr(
+    ocenia_and_africa_scr = Currencyscr(
             currencies_per_continent['oceania_africa'], 
             "Oceania & Africa", 
             20, 30, 10, 100, 
             [RED, MAGENTA, GREEN]) 
 
-    menu_content =  "[+] C to Toggle chart view"
-    list_or_chart_menu: Menu = Menu(menu_content, [MAGENTA, GREEN], 30, 10) 
+    menu_content =  "[+] c | Toggle chart view"
+    exit_menu_content =  "[+] q | exit"
+    toggle_chart_menu = Menu(menu_content, [MAGENTA, GREEN], 30, 10) 
+    exit_menu = Menu(exit_menu_content, [RED, GREEN], 30, 40) 
 
     # If dynamic updates are added later.
     stdscr.timeout(-1)
 
 
-    def draw_all(isChartMode: bool):
+    def draw_all(isChartMode):
 
         #Main Screen
-        draw_mainscr(stdscr, title, MAGENTA) 
+        stdscr.erase()
+        stdscr.box()
+        height, width = stdscr.getmaxyx()
+        XMESSAGE, YMESSAGE = abs((width // 2) - (len(title) // 2)), height // 7 
+        stdscr.addstr(YMESSAGE, XMESSAGE, title, MAGENTA)
+        stdscr.noutrefresh()
+
         if isChartMode:
             asia_scr.chart_mode()
             europe_scr.chart_mode()
@@ -162,7 +114,8 @@ def main(stdscr: curses.window):
             ocenia_and_africa_scr.write_currency()
 
 
-        list_or_chart_menu.draw_menu()  
+        toggle_chart_menu.draw_menu()  
+        exit_menu.draw_menu()
         
         curses.doupdate()
 
