@@ -43,18 +43,7 @@ import requests
 #   }
 # }
 
-  # ┃  - CNY - China
-  # ┃  - HKD - Hong Kong    
-  # ┃  - IDR - Indonesia
-  # ┃  - INR - India  
-  # ┃  - JPY - Japan  
-  # ┃  - KRW - South Korea
-  # ┃  - MYR - Malaysia
-  # ┃  - PHP - Philippines  
-  # ┃  - SGD - Singapore
-  # ┃  - THB - Thailand
-
-def get_Currencies() -> dict[str, list[list[str]]]  | str:
+def get_Currencies() -> dict[str, list[tuple[str, str, float]]]  | str:
     try:
         res = requests.get("https://api.frankfurter.app/latest")
         data = res.json()
@@ -82,7 +71,7 @@ def get_Currencies() -> dict[str, list[list[str]]]  | str:
                 }
         }
 
-        result: dict[str, list[list[str]]]  = {}
+        result: dict[str, list[tuple[str, str, float]]]  = {}
         for continent, currency_map in continents.items():
             result[continent] = [[f"{name}: {rates[code]:.2f}", f"{code}", rates[code]] for name, code in currency_map.items()]
 
@@ -100,13 +89,17 @@ def draw_mainscr(stdscr: curses.window, title: str, color: int):
         
     stdscr.noutrefresh()
 
-def main(stdscr: curses.window):
-    currencies_per_continent = get_Currencies()
-    if currencies_per_continent == "error":
-        print("Error")
+def draw_error(color: list[int], stdscr: curses.window):
+    height, width = stdscr.getmaxyx()
+    error_menu: Menu = Menu("We've had and issue getting the data :(", color, width//2, height//2)
+    q_to_leave: Menu = Menu("Press q to leave", color, 30, 10) 
+    q_to_leave.draw_menu()
+    error_menu.draw_menu()
+    key = stdscr.getch()
+    if key == ord('q'):
         return
-    curses.curs_set(0)  
-    
+
+def main(stdscr: curses.window):
     # colors
     curses.init_pair(1, curses.COLOR_MAGENTA, curses.COLOR_BLACK) 
     curses.init_pair(2, curses.COLOR_GREEN, curses.COLOR_BLACK) 
@@ -115,29 +108,36 @@ def main(stdscr: curses.window):
     GREEN: int = curses.color_pair(2)
     RED = curses.color_pair(3)
     
+    currencies_per_continent = get_Currencies()
+
+    if currencies_per_continent == "error":
+       draw_error([MAGENTA, RED], stdscr) 
+
+    curses.curs_set(0)  
+    
     title: str = "World Currencies  🌍"
     asia_scr: Currencyscr = Currencyscr(
             currencies_per_continent['asia'], 
             "Asia", 
             20, 30, 10, 10,
-            [GREEN, MAGENTA, RED] 
+            [RED, MAGENTA, GREEN]
             ) 
     europe_scr: Currencyscr = Currencyscr(
             currencies_per_continent['europe'], 
             "Europe", 
             20, 30, 10, 40, 
-            [GREEN, MAGENTA, RED]
+            [RED, MAGENTA, GREEN]
             ) 
     america_scr: Currencyscr = Currencyscr(
-            currencies_per_continent['america'], 
+        currencies_per_continent['america'] , 
             "America", 
             20, 30, 10, 70, 
-            [GREEN, MAGENTA, RED])
+            [RED, MAGENTA, GREEN])
     ocenia_and_africa_scr: Currencyscr = Currencyscr(
             currencies_per_continent['oceania_africa'], 
             "Oceania & Africa", 
             20, 30, 10, 100, 
-            [GREEN, MAGENTA, RED]) 
+            [RED, MAGENTA, GREEN]) 
 
     menu_content =  "[+] C to Toggle chart view"
     list_or_chart_menu: Menu = Menu(menu_content, [MAGENTA, GREEN], 30, 10) 
@@ -177,7 +177,6 @@ def main(stdscr: curses.window):
             chartMode = not chartMode
         elif key == curses.KEY_RESIZE:
             draw_all(chartMode)
-
 
 if __name__ == '__main__':
     wrapper(main)
