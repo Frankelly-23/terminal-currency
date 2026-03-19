@@ -7,6 +7,8 @@ This is a sleek, **Terminal User Interface (TUI)** that brings world currency ra
 ##  See it in Action
 ![Currency Screen Capture](./public/screen-capture.png)
 
+## Chart Mode 
+![Currency Screen Capture](./public/screen-capture-chart.png)
 ##  Features
 - **Continent-wise Breakdown:** Organized views for Asia, Europe, America, and Oceania & Africa.
 - **TUI Powered:** Built with `curses` for that retro-cool terminal feel.
