@@ -23,7 +23,7 @@ DEFAULT_CONTINENTS = {
 }
 
 class Config:
-    def __init__(self, config_path = "config.json"):
+    def __init__(self, config_path = "../config.json"):
         self.config_path = config_path
         self.continents = self._load_config()
 

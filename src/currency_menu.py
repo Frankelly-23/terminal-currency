@@ -16,6 +16,7 @@ class Menu:
         self.contentY = self.height//2 
 
     def draw_menu(self):
+
         self.menuscr.erase()
         self.menuscr.box()
 

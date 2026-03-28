@@ -28,6 +28,7 @@ def get_Currencies():
 
 
 def draw_error(color, stdscr):
+
     stdscr.erase()
     stdscr.box()
     height, width = stdscr.getmaxyx()
@@ -42,7 +43,7 @@ def draw_error(color, stdscr):
     stdscr.refresh()
     stdscr.getch()
 
-def main(stdscr):
+def get_colors():
     # colors
     curses.init_pair(1, curses.COLOR_MAGENTA, curses.COLOR_BLACK) 
     curses.init_pair(2, curses.COLOR_GREEN, curses.COLOR_BLACK) 
@@ -51,75 +52,75 @@ def main(stdscr):
     GREEN  = curses.color_pair(2)
     RED = curses.color_pair(3)
     
+    return [MAGENTA, GREEN, RED]
+
+def main(stdscr):
+
+    colors = get_colors() 
     currencies_per_continent = get_Currencies()
 
     if currencies_per_continent is None:
-       draw_error([MAGENTA, RED], stdscr) 
+       draw_error(colors, stdscr) 
        return
 
     curses.curs_set(0)  
     
-    title = "World Currencies  🌍"
     asia_scr = Currencyscr(
             currencies_per_continent['asia'], 
             "Asia", 
-            20, 30, 10, 10,
-            [RED, MAGENTA, GREEN]
+            colors
             ) 
     europe_scr = Currencyscr(
             currencies_per_continent['europe'], 
             "Europe", 
-            20, 30, 10, 40, 
-            [RED, MAGENTA, GREEN]
+            colors
             ) 
     america_scr = Currencyscr(
         currencies_per_continent['america'] , 
             "America", 
-            20, 30, 10, 70, 
-            [RED, MAGENTA, GREEN])
+            colors
+            )
     ocenia_and_africa_scr = Currencyscr(
             currencies_per_continent['oceania_africa'], 
             "Oceania & Africa", 
-            20, 30, 10, 100, 
-            [RED, MAGENTA, GREEN]) 
+            colors 
+            ) 
 
-    menu_content =  "[+] c | Toggle chart view"
-    exit_menu_content =  "[+] q | exit"
-    toggle_chart_menu = Menu(menu_content, [MAGENTA, GREEN], 30, 10) 
-    exit_menu = Menu(exit_menu_content, [RED, GREEN], 30, 40) 
-
+    
     # If dynamic updates are added later.
     stdscr.timeout(-1)
 
+    title_menu = Menu("World Currencies  🌍", colors, 5, 73)
+    toggle_chart_menu = Menu("[+] c | Toggle chart view", colors, 30, 10) 
+    exit_menu = Menu("[+] q | exit", colors, 30, 40) 
 
     def draw_all(isChartMode):
 
         #Main Screen
         stdscr.erase()
         stdscr.box()
+        
         height, width = stdscr.getmaxyx()
-        XMESSAGE, YMESSAGE = abs((width // 2) - (len(title) // 2)), height // 7 
-        stdscr.addstr(YMESSAGE, XMESSAGE, title, MAGENTA)
+
+        screens_height = height // 2
+        screens_width = width // 5 
+
         stdscr.noutrefresh()
 
-        if isChartMode:
-            asia_scr.chart_mode()
-            europe_scr.chart_mode()
-            america_scr.chart_mode()
-            ocenia_and_africa_scr.chart_mode()
-        else:
-            asia_scr.write_currency()
-            europe_scr.write_currency()
-            america_scr.write_currency()
-            ocenia_and_africa_scr.write_currency()
+        asia_scr.make_screen(isChartMode, screens_height, screens_width , 10, 10)
+        europe_scr.make_screen(isChartMode, screens_height, screens_width, 10, 40)
+        america_scr.make_screen(isChartMode, screens_height, screens_width, 10, 70)
+        ocenia_and_africa_scr.make_screen(isChartMode, screens_height, screens_width, 10, 100)
 
 
         toggle_chart_menu.draw_menu()  
         exit_menu.draw_menu()
-        
+        title_menu.draw_menu() 
+
         curses.doupdate()
 
     chartMode = False 
+
     while True:
         draw_all(chartMode)
         # Check for user input (q to quit)
@@ -133,5 +134,3 @@ def main(stdscr):
 
 if __name__ == '__main__':
     wrapper(main)
-
-
