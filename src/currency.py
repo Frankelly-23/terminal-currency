@@ -104,13 +104,14 @@ def main(stdscr):
 
         screens_height = height // 2
         screens_width = width // 5 
-
+        screens_y = width // 14 # will begin at y ~ 10 on my terminal
+        
         stdscr.noutrefresh()
 
-        asia_scr.make_screen(isChartMode, screens_height, screens_width , 10, 10)
-        europe_scr.make_screen(isChartMode, screens_height, screens_width, 10, 40)
-        america_scr.make_screen(isChartMode, screens_height, screens_width, 10, 70)
-        ocenia_and_africa_scr.make_screen(isChartMode, screens_height, screens_width, 10, 100)
+        asia_scr.make_screen(isChartMode, screens_height, screens_width , screens_y, screens_y * 1)
+        europe_scr.make_screen(isChartMode, screens_height, screens_width, screens_y, screens_y * 4)
+        america_scr.make_screen(isChartMode, screens_height, screens_width, screens_y, screens_y * 7)
+        ocenia_and_africa_scr.make_screen(isChartMode, screens_height, screens_width, screens_y, screens_y * 10)
 
 
         toggle_chart_menu.draw_menu()  
