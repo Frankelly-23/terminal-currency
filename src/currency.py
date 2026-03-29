@@ -89,10 +89,10 @@ def main(stdscr):
     
     # If dynamic updates are added later.
     stdscr.timeout(-1)
-
-    title_menu = Menu("World Currencies  🌍", colors, 5, 73)
-    toggle_chart_menu = Menu("[+] c | Toggle chart view", colors, 30, 10) 
-    exit_menu = Menu("[+] q | exit", colors, 30, 40) 
+    title = "World Currencies  🌍"
+    title_menu = Menu(title, colors)
+    toggle_chart_menu = Menu("[+] c | Toggle chart view", colors) 
+    exit_menu = Menu("[+] q | exit", colors) 
 
     def draw_all(isChartMode):
 
@@ -114,9 +114,9 @@ def main(stdscr):
         ocenia_and_africa_scr.make_screen(isChartMode, screens_height, screens_width, screens_y, screens_y * 10)
 
 
-        toggle_chart_menu.draw_menu()  
-        exit_menu.draw_menu()
-        title_menu.draw_menu() 
+        title_menu.make_menu_window(screens_height - 12, (width // 2) - len(title)) 
+        toggle_chart_menu.make_menu_window(screens_height + 10, 10)  
+        exit_menu.make_menu_window(screens_height + 10, 40)
 
         curses.doupdate()
 
