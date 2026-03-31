@@ -113,10 +113,12 @@ def main(stdscr):
         america_scr.make_screen(isChartMode, screens_height, screens_width, screens_y, screens_y * 7)
         ocenia_and_africa_scr.make_screen(isChartMode, screens_height, screens_width, screens_y, screens_y * 10)
 
+        title_menu_y, title_menu_x = screens_height - int(0.8 * screens_height) , (width // 2) - len(title)
 
-        title_menu.make_menu_window(screens_height - 12, (width // 2) - len(title)) 
-        toggle_chart_menu.make_menu_window(screens_height + 10, 10)  
-        exit_menu.make_menu_window(screens_height + 10, 40)
+        if title_menu_y > 0 and title_menu_x > 0:
+            title_menu.make_menu_window(title_menu_y, title_menu_x) 
+            toggle_chart_menu.make_menu_window(screens_height + int(0.6 * screens_height), 10)  
+            exit_menu.make_menu_window(screens_height + int(0.6 * screens_height), 40)
 
         curses.doupdate()
 
