@@ -28,20 +28,26 @@ def get_Currencies():
 
 
 def draw_error(color, stdscr):
-
+    import sys
     stdscr.erase()
     stdscr.box()
+    stdscr.noutrefresh() # Refresh background first to avoid overwriting menus
+    
     height, width = stdscr.getmaxyx()
     error_message = "We've had an issue getting the data :("
-    exit_message = "Press any key to leave"
+    exit_message = "Press q to leave"
     
-    mid_y, mid_x = height // 2, width // 2
+    error_menu = Menu(error_message, color) 
+    exit_menu = Menu(exit_message, color) 
+
+    # Use the Menu's calculated ncols for perfect centering
+    error_menu.make_menu_window(height // 2 - 2, (width - error_menu.ncols) // 2) 
+    exit_menu.make_menu_window(height - int(height * 0.3), 10)
     
-    stdscr.addstr(mid_y, mid_x - len(error_message)//2, error_message, color[1])
-    stdscr.addstr(mid_y + 2, mid_x - len(exit_message)//2, exit_message, color[0])
-    
-    stdscr.refresh()
-    stdscr.getch()
+    curses.doupdate()
+    while stdscr.getch() != ord('q'):
+        pass
+    sys.exit()
 
 def get_colors():
     # colors
@@ -52,7 +58,7 @@ def get_colors():
     GREEN  = curses.color_pair(2)
     RED = curses.color_pair(3)
     
-    return [MAGENTA, GREEN, RED]
+    return [RED, MAGENTA, GREEN]
 
 def main(stdscr):
 
@@ -113,7 +119,7 @@ def main(stdscr):
         america_scr.make_screen(isChartMode, screens_height, screens_width, screens_y, screens_y * 7)
         ocenia_and_africa_scr.make_screen(isChartMode, screens_height, screens_width, screens_y, screens_y * 10)
 
-        title_menu_y, title_menu_x = screens_height - int(0.8 * screens_height) , (width // 2) - len(title)
+        title_menu_y, title_menu_x = screens_height - int(0.8 * screens_height) , (width - title_menu.ncols) // 2
 
         if title_menu_y > 0 and title_menu_x > 0:
             title_menu.make_menu_window(title_menu_y, title_menu_x) 
