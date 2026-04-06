@@ -27,14 +27,14 @@ class Currencyscr:
 
     def _decide_color(self, value):
         low = 20
-        medium = 100
+        medium = 50 
         # RED MAGENTA GREEN 
         if value < low:
-            return self.colors[0]
+            return self.colors[2]
         elif value < medium:
            return self.colors[1]
         else:
-            return self.colors[2]
+            return self.colors[0]
 
 
     def write_currency(self):

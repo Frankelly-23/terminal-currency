@@ -1,145 +1,145 @@
-
 import curses
 from curses import wrapper
-from currency_screen import Currencyscr 
+import requests
+from currency_screen import Currencyscr
 from currency_menu import Menu
 from config import Config
-import requests
 
-config = Config()
+class CurrencyApp:
+    def __init__(self):
+        self.config = Config()
+        self.base_url = "https://api.frankfurter.app/latest?base=USD"
+        self.base_dollar = True
+        self.colors = []
+        self.currencies_data = None
+        self.screens = []
+        self.menus = {}
+        self.chart_mode = False
+        
+    def fetch_currencies(self, base_url):
+        try:
+            res = requests.get(base_url)
+            res.raise_for_status()
+            data = res.json()
+            rates = data["rates"]
 
-def get_Currencies():
-    try:
-        res = requests.get("https://api.frankfurter.app/latest")
-        res.raise_for_status()
-        data = res.json()
-        rates = data["rates"] 
+            continents = self.config.get_continents()
+            result = {}
+            for continent, currency_map in continents.items():
+                result[continent] = [
+                    [f"{name}: {rates[code]:.2f}", f"{code}", rates[code]]
+                    for name, code in currency_map.items()
+                    if code in rates
+                ]
+            return result
+        except Exception:
+            return None
 
-        continents = config.get_continents()
+    def get_colors(self):
+        curses.init_pair(1, curses.COLOR_MAGENTA, curses.COLOR_BLACK)
+        curses.init_pair(2, curses.COLOR_GREEN, curses.COLOR_BLACK)
+        curses.init_pair(3, curses.COLOR_RED, curses.COLOR_BLACK)
+        
+        magenta = curses.color_pair(1)
+        green = curses.color_pair(2)
+        red = curses.color_pair(3)
+        
+        return [red, magenta, green]
 
-        result  = {}
-        for continent, currency_map in continents.items():
-            result[continent] = [[f"{name}: {rates[code]:.2f}", f"{code}", rates[code]] for name, code in currency_map.items() if code in rates]
+    def set_tui(self):
+        self.colors = self.get_colors()
+        dollar = "https://api.frankfurter.app/latest?base=USD" 
+        euro = "https://api.frankfurter.app/latest" 
 
-        return result
+        self.base_url = dollar if self.base_dollar else euro
+        self.currencies_data = self.fetch_currencies(self.base_url)
+        
+        if self.currencies_data is None:
+            return False
 
-    except Exception:
-        return None
+        self.screens = [
+            Currencyscr(self.currencies_data['asia'], "Asia", self.colors),
+            Currencyscr(self.currencies_data['europe'], "Europe", self.colors),
+            Currencyscr(self.currencies_data['america'], "America", self.colors),
+            Currencyscr(self.currencies_data['oceania_africa'], "Oceania & Africa", self.colors)
+        ]
 
+        self.menus['title'] = Menu("[+] World Currencies  🌍", self.colors)
+        self.menus['toggle_base'] = Menu("[+] d > To Toggle base $ | €", self.colors)
+        self.menus['toggle_chart'] = Menu("[+] c > Toggle chart view", self.colors)
+        self.menus['exit'] = Menu("[+] q > exit", self.colors)
+        
+        return True
 
-def draw_error(color, stdscr):
-    import sys
-    stdscr.erase()
-    stdscr.box()
-    stdscr.noutrefresh() # Refresh background first to avoid overwriting menus
-    
-    height, width = stdscr.getmaxyx()
-    error_message = "We've had an issue getting the data :("
-    exit_message = "Press q to leave"
-    
-    error_menu = Menu(error_message, color) 
-    exit_menu = Menu(exit_message, color) 
-
-    # Use the Menu's calculated ncols for perfect centering
-    error_menu.make_menu_window(height // 2 - 2, (width - error_menu.ncols) // 2) 
-    exit_menu.make_menu_window(height - int(height * 0.3), 10)
-    
-    curses.doupdate()
-    while stdscr.getch() != ord('q'):
-        pass
-    sys.exit()
-
-def get_colors():
-    # colors
-    curses.init_pair(1, curses.COLOR_MAGENTA, curses.COLOR_BLACK) 
-    curses.init_pair(2, curses.COLOR_GREEN, curses.COLOR_BLACK) 
-    curses.init_pair(3, curses.COLOR_RED, curses.COLOR_BLACK) 
-    MAGENTA = curses.color_pair(1)
-    GREEN  = curses.color_pair(2)
-    RED = curses.color_pair(3)
-    
-    return [RED, MAGENTA, GREEN]
-
-def main(stdscr):
-
-    colors = get_colors() 
-    currencies_per_continent = get_Currencies()
-
-    if currencies_per_continent is None:
-       draw_error(colors, stdscr) 
-       return
-
-    curses.curs_set(0)  
-    
-    asia_scr = Currencyscr(
-            currencies_per_continent['asia'], 
-            "Asia", 
-            colors
-            ) 
-    europe_scr = Currencyscr(
-            currencies_per_continent['europe'], 
-            "Europe", 
-            colors
-            ) 
-    america_scr = Currencyscr(
-        currencies_per_continent['america'] , 
-            "America", 
-            colors
-            )
-    ocenia_and_africa_scr = Currencyscr(
-            currencies_per_continent['oceania_africa'], 
-            "Oceania & Africa", 
-            colors 
-            ) 
-
-    
-    # If dynamic updates are added later.
-    stdscr.timeout(-1)
-    title = "World Currencies  🌍"
-    title_menu = Menu(title, colors)
-    toggle_chart_menu = Menu("[+] c | Toggle chart view", colors) 
-    exit_menu = Menu("[+] q | exit", colors) 
-
-    def draw_all(isChartMode):
-
-        #Main Screen
+    def draw_error(self, stdscr):
+        import sys
         stdscr.erase()
         stdscr.box()
-        
-        height, width = stdscr.getmaxyx()
-
-        screens_height = height // 2
-        screens_width = width // 5 
-        screens_y = width // 14 # will begin at y ~ 10 on my terminal
-        
         stdscr.noutrefresh()
 
-        asia_scr.make_screen(isChartMode, screens_height, screens_width , screens_y, screens_y * 1)
-        europe_scr.make_screen(isChartMode, screens_height, screens_width, screens_y, screens_y * 4)
-        america_scr.make_screen(isChartMode, screens_height, screens_width, screens_y, screens_y * 7)
-        ocenia_and_africa_scr.make_screen(isChartMode, screens_height, screens_width, screens_y, screens_y * 10)
+        height, width = stdscr.getmaxyx()
+        error_menu = Menu("We've had an issue getting the data :(", self.colors)
+        exit_menu = Menu("Press q to leave", self.colors)
 
-        title_menu_y, title_menu_x = screens_height - int(0.8 * screens_height) , (width - title_menu.ncols) // 2
-
-        if title_menu_y > 0 and title_menu_x > 0:
-            title_menu.make_menu_window(title_menu_y, title_menu_x) 
-            toggle_chart_menu.make_menu_window(screens_height + int(0.6 * screens_height), 10)  
-            exit_menu.make_menu_window(screens_height + int(0.6 * screens_height), 40)
+        error_menu.make_menu_window(height // 2 - 2, (width - error_menu.ncols) // 2)
+        exit_menu.make_menu_window(height - int(height * 0.3), 10)
 
         curses.doupdate()
+        while stdscr.getch() != ord('q'):
+            pass
+        sys.exit()
 
-    chartMode = False 
+    def draw_menus(self, height, width, screens_height):
+        title_menu = self.menus['title']
+        title_y = screens_height - int(0.8 * screens_height)
+        title_x = (width - title_menu.ncols) // 2
 
-    while True:
-        draw_all(chartMode)
-        # Check for user input (q to quit)
-        key = stdscr.getch()
-        if key == ord('q'):
-            break
-        elif key == ord('c'):
-            chartMode = not chartMode
-        elif key == curses.KEY_RESIZE:
-            draw_all(chartMode)
+        if title_y > 0 and title_x > 0:
+            title_menu.make_menu_window(title_y, title_x)
+            self.menus['toggle_chart'].make_menu_window(screens_height + int(0.6 * screens_height), 10)
+            self.menus['toggle_base'].make_menu_window(screens_height + int(0.6 * screens_height), 40)
+            self.menus['exit'].make_menu_window(screens_height + int(0.6 * screens_height), 75)
+
+    def draw_all(self, stdscr):
+        stdscr.erase()
+        stdscr.box()
+
+        height, width = stdscr.getmaxyx()
+        screens_height = height // 2
+        screens_width = width // 5
+        screens_y = width // 14
+
+        stdscr.noutrefresh()
+
+        # Render continent screens at fixed intervals
+        for i, screen in enumerate(self.screens):
+            screen.make_screen(self.chart_mode, screens_height, screens_width, screens_y, screens_y * (1 + i * 3))
+
+        self.draw_menus(height, width, screens_height)
+        curses.doupdate()
+
+    def run(self, stdscr):
+        curses.curs_set(0)
+        stdscr.timeout(-1)
+
+        if not self.set_tui():
+            self.draw_error(stdscr)
+
+        while True:
+            self.draw_all(stdscr)
+            key = stdscr.getch()
+            
+            if key == ord('q'):
+                break
+            elif key == ord('c'):
+                self.chart_mode = not self.chart_mode
+            elif key == ord('d'):
+                self.base_dollar = not self.base_dollar
+                wrapper(self.run)
+                break
+            elif key == curses.KEY_RESIZE:
+                self.draw_all(stdscr)
 
 if __name__ == '__main__':
-    wrapper(main)
+    app = CurrencyApp()
+    wrapper(app.run)
